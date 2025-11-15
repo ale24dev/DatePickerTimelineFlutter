@@ -195,7 +195,9 @@ class _DatePickerState extends State<DatePicker> {
     );
 
     int offset = date.difference(startDate).inDays;
-    return (offset * widget.width) + (offset * 6);
+    // Each item width + margin on both sides (3px each = 6px total)
+    double itemTotalWidth = widget.width + 6;
+    return offset * itemTotalWidth;
   }
 
   @override

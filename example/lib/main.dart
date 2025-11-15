@@ -63,8 +63,8 @@ class _MyHomePageState extends State<MyHomePage> {
               Container(
                 child: DatePicker(
                   DateTime.now().subtract(Duration(days: 365)),
-                  width: 60,
-                  height: 80,
+                  width: 70,
+                  height: 60,
                   controller: _controller,
                   initialSelectedDate: DateTime.now(),
                   selectionColor: Colors.black,
