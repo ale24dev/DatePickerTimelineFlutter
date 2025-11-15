@@ -36,17 +36,23 @@ class PersianDateWidget extends StatelessWidget {
           color: selectionColor,
         ),
         child: Padding(
-          padding: const EdgeInsets.all(8),
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
               Text((PersianDate.persianMonthNames(date.month)), // Month
-                  style: monthTextStyle),
+                  style: monthTextStyle,
+                  overflow: TextOverflow.visible,
+                  maxLines: 1),
               Text('${date.day}'.toPersianDigit(), // Date
-                  style: dateTextStyle),
+                  style: dateTextStyle,
+                  overflow: TextOverflow.visible,
+                  maxLines: 1),
               Text((PersianDate.persianWeeklyName(date)), // WeekDay
-                  style: dayTextStyle)
+                  style: dayTextStyle,
+                  overflow: TextOverflow.visible,
+                  maxLines: 1)
             ],
           ),
         ),

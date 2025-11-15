@@ -42,17 +42,23 @@ class GregorianDateWidget extends StatelessWidget {
           color: selectionColor,
         ),
         child: Padding(
-          padding: const EdgeInsets.all(8),
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
               Text(DateFormat("MMM", locale).format(date).toUpperCase(), // Month
-                  style: monthTextStyle),
+                  style: monthTextStyle,
+                  overflow: TextOverflow.visible,
+                  maxLines: 1),
               Text(date.day.toString(), // Date
-                  style: dateTextStyle),
+                  style: dateTextStyle,
+                  overflow: TextOverflow.visible,
+                  maxLines: 1),
               Text(DateFormat("E", locale).format(date).toUpperCase(), // WeekDay
-                  style: dayTextStyle)
+                  style: dayTextStyle,
+                  overflow: TextOverflow.visible,
+                  maxLines: 1)
             ],
           ),
         ),

@@ -68,6 +68,9 @@ class DatePicker extends StatefulWidget {
   /// Locale for the calendar default: en_us
   final String locale;
 
+  /// Whether to center the selected date in the viewport
+  final bool centerSelectedDate;
+
   DatePicker(
       this.startDate, {
         Key? key,
@@ -88,6 +91,7 @@ class DatePicker extends StatefulWidget {
         this.locale = "en_US",
         this.calendarType = CalendarType.gregorianDate,
         this.directionality,
+        this.centerSelectedDate = true,
       }) : assert(
   activeDates == null || inactiveDates == null,
   "Can't "
@@ -134,7 +138,64 @@ class _DatePickerState extends State<DatePicker> {
     this.deactivatedDayStyle =
         widget.dayTextStyle.copyWith(color: widget.deactivatedColor);
 
+    // Center the initial selected date if centerSelectedDate is enabled
+    if (widget.centerSelectedDate && _currentDate != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (_controller.hasClients) {
+          final dateOffset = _calculateDateOffset(_currentDate!);
+          final viewportWidth = _controller.position.viewportDimension;
+          final centerOffset = dateOffset - (viewportWidth / 2) + (widget.width / 2);
+
+          _controller.jumpTo(
+            centerOffset.clamp(
+              _controller.position.minScrollExtent,
+              _controller.position.maxScrollExtent,
+            ),
+          );
+        }
+      });
+    }
+
     super.initState();
+  }
+
+  /// Centers the selected date in the viewport (internal method)
+  void _centerDate(DateTime selectedDate) {
+    if (_controller.hasClients) {
+      final dateOffset = _calculateDateOffset(selectedDate);
+      final viewportWidth = _controller.position.viewportDimension;
+      final centerOffset = dateOffset - (viewportWidth / 2) + (widget.width / 2);
+
+      _controller.animateTo(
+        centerOffset.clamp(
+          _controller.position.minScrollExtent,
+          _controller.position.maxScrollExtent,
+        ),
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    }
+  }
+
+  /// Animates the scroll to center the selected date
+  void _animateToCenter(DateTime selectedDate) {
+    // Schedule the centering for the next frame to ensure controller is ready
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _centerDate(selectedDate);
+    });
+  }
+
+  /// Calculate the number of pixels that needs to be scrolled to go to the
+  /// date provided in the argument
+  double _calculateDateOffset(DateTime date) {
+    final startDate = DateTime(
+      widget.startDate.year,
+      widget.startDate.month,
+      widget.startDate.day,
+    );
+
+    int offset = date.difference(startDate).inDays;
+    return (offset * widget.width) + (offset * 6);
   }
 
   @override
@@ -143,13 +204,28 @@ class _DatePickerState extends State<DatePicker> {
       textDirection: (widget.directionality) ?? ((widget.calendarType == CalendarType.persianDate)
           ? TextDirection.rtl
           : TextDirection.ltr),
-      child: Container(
-        height: widget.height,
-        child: ListView.builder(
-          itemCount: widget.daysCount,
-          scrollDirection: Axis.horizontal,
-          controller: _controller,
-          itemBuilder: (context, index) {
+      child: ShaderMask(
+        shaderCallback: (Rect bounds) {
+          return LinearGradient(
+            begin: Alignment.centerLeft,
+            end: Alignment.centerRight,
+            colors: [
+              Colors.transparent,
+              Colors.black,
+              Colors.black,
+              Colors.transparent,
+            ],
+            stops: [0.0, 0.1, 0.9, 1.0],
+          ).createShader(bounds);
+        },
+        blendMode: BlendMode.dstIn,
+        child: Container(
+          height: widget.height,
+          child: ListView.builder(
+            itemCount: widget.daysCount,
+            scrollDirection: Axis.horizontal,
+            controller: _controller,
+            itemBuilder: (context, index) {
             // get the date object based on the index position
             // if widget.startDate is null then use the initialDateValue
             DateTime date;
@@ -225,6 +301,11 @@ class _DatePickerState extends State<DatePicker> {
                     setState(() {
                       _currentDate = selectedDate;
                     });
+
+                    // Animate scroll to center the selected date if enabled
+                    if (widget.centerSelectedDate) {
+                      _animateToCenter(selectedDate);
+                    }
                   },
                 );
               case CalendarType.persianDate:
@@ -259,11 +340,17 @@ class _DatePickerState extends State<DatePicker> {
                     setState(() {
                       _currentDate = selectedDate;
                     });
+
+                    // Animate scroll to center the selected date if enabled
+                    if (widget.centerSelectedDate) {
+                      _animateToCenter(selectedDate);
+                    }
                   },
                 );
             }
           },
         ),
+      ),
       ),
     );
   }
@@ -282,7 +369,7 @@ class DatePickerController {
 
     // jump to the current Date
     _datePickerState!._controller
-        .jumpTo(_calculateDateOffset(_datePickerState!._currentDate!));
+        .jumpTo(_datePickerState!._calculateDateOffset(_datePickerState!._currentDate!));
   }
 
   /// This function will animate the Timeline to the currently selected Date
@@ -293,7 +380,7 @@ class DatePickerController {
 
     // animate to the current date
     _datePickerState!._controller.animateTo(
-        _calculateDateOffset(_datePickerState!._currentDate!),
+        _datePickerState!._calculateDateOffset(_datePickerState!._currentDate!),
         duration: duration,
         curve: curve);
   }
@@ -305,7 +392,7 @@ class DatePickerController {
     assert(_datePickerState != null,
     'DatePickerController is not attached to any DatePicker View.');
 
-    _datePickerState!._controller.animateTo(_calculateDateOffset(date),
+    _datePickerState!._controller.animateTo(_datePickerState!._calculateDateOffset(date),
         duration: duration, curve: curve);
   }
 
@@ -316,7 +403,7 @@ class DatePickerController {
     assert(_datePickerState != null,
     'DatePickerController is not attached to any DatePicker View.');
 
-    _datePickerState!._controller.animateTo(_calculateDateOffset(date),
+    _datePickerState!._controller.animateTo(_datePickerState!._calculateDateOffset(date),
         duration: duration, curve: curve);
 
     if (date.compareTo(_datePickerState!.widget.startDate) >= 0 &&
@@ -326,17 +413,5 @@ class DatePickerController {
       // date is in the range
       _datePickerState!._currentDate = date;
     }
-  }
-
-  /// Calculate the number of pixels that needs to be scrolled to go to the
-  /// date provided in the argument
-  double _calculateDateOffset(DateTime date) {
-    final startDate = new DateTime(
-        _datePickerState!.widget.startDate.year,
-        _datePickerState!.widget.startDate.month,
-        _datePickerState!.widget.startDate.day);
-
-    int offset = date.difference(startDate).inDays;
-    return (offset * _datePickerState!.widget.width) + (offset * 6);
   }
 }
