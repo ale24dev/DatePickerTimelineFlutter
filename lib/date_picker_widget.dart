@@ -41,6 +41,15 @@ class DatePicker extends StatefulWidget {
   /// TextStyle for the date Value
   final TextStyle dateTextStyle;
 
+  /// TextStyle for selected Month Value (overrides selectedTextColor if provided)
+  final TextStyle? selectedMonthTextStyle;
+
+  /// TextStyle for selected day Value (overrides selectedTextColor if provided)
+  final TextStyle? selectedDayTextStyle;
+
+  /// TextStyle for selected date Value (overrides selectedTextColor if provided)
+  final TextStyle? selectedDateTextStyle;
+
   /// Current Selected Date
   final DateTime? /*?*/ initialSelectedDate;
 
@@ -80,6 +89,9 @@ class DatePicker extends StatefulWidget {
     this.monthTextStyle = defaultMonthTextStyle,
     this.dayTextStyle = defaultDayTextStyle,
     this.dateTextStyle = defaultDateTextStyle,
+    this.selectedMonthTextStyle,
+    this.selectedDayTextStyle,
+    this.selectedDateTextStyle,
     this.selectedTextColor = Colors.white,
     this.selectionColor = AppColors.defaultSelectionColor,
     this.deactivatedColor = AppColors.defaultDeactivatedColor,
@@ -124,11 +136,12 @@ class _DatePickerState extends State<DatePicker> {
 
     widget.controller?.setDatePickerState(this);
 
-    this.selectedDateStyle =
+    // Use custom selected styles if provided, otherwise fallback to applying selectedTextColor
+    this.selectedDateStyle = widget.selectedDateTextStyle ??
         widget.dateTextStyle.copyWith(color: widget.selectedTextColor);
-    this.selectedMonthStyle =
+    this.selectedMonthStyle = widget.selectedMonthTextStyle ??
         widget.monthTextStyle.copyWith(color: widget.selectedTextColor);
-    this.selectedDayStyle =
+    this.selectedDayStyle = widget.selectedDayTextStyle ??
         widget.dayTextStyle.copyWith(color: widget.selectedTextColor);
 
     this.deactivatedDateStyle =
