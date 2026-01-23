@@ -118,13 +118,23 @@ class _DatePickerState extends State<DatePicker> {
 
   ScrollController _controller = ScrollController();
 
-  late final TextStyle selectedDateStyle;
-  late final TextStyle selectedMonthStyle;
-  late final TextStyle selectedDayStyle;
+  // Use getters to recalculate styles when widget properties change (e.g., theme change)
+  TextStyle get selectedDateStyle =>
+      widget.selectedDateTextStyle ??
+      widget.dateTextStyle.copyWith(color: widget.selectedTextColor);
+  TextStyle get selectedMonthStyle =>
+      widget.selectedMonthTextStyle ??
+      widget.monthTextStyle.copyWith(color: widget.selectedTextColor);
+  TextStyle get selectedDayStyle =>
+      widget.selectedDayTextStyle ??
+      widget.dayTextStyle.copyWith(color: widget.selectedTextColor);
 
-  late final TextStyle deactivatedDateStyle;
-  late final TextStyle deactivatedMonthStyle;
-  late final TextStyle deactivatedDayStyle;
+  TextStyle get deactivatedDateStyle =>
+      widget.dateTextStyle.copyWith(color: widget.deactivatedColor);
+  TextStyle get deactivatedMonthStyle =>
+      widget.monthTextStyle.copyWith(color: widget.deactivatedColor);
+  TextStyle get deactivatedDayStyle =>
+      widget.dayTextStyle.copyWith(color: widget.deactivatedColor);
 
   @override
   void initState() {
@@ -135,21 +145,6 @@ class _DatePickerState extends State<DatePicker> {
     _currentDate = widget.initialSelectedDate;
 
     widget.controller?.setDatePickerState(this);
-
-    // Use custom selected styles if provided, otherwise fallback to applying selectedTextColor
-    this.selectedDateStyle = widget.selectedDateTextStyle ??
-        widget.dateTextStyle.copyWith(color: widget.selectedTextColor);
-    this.selectedMonthStyle = widget.selectedMonthTextStyle ??
-        widget.monthTextStyle.copyWith(color: widget.selectedTextColor);
-    this.selectedDayStyle = widget.selectedDayTextStyle ??
-        widget.dayTextStyle.copyWith(color: widget.selectedTextColor);
-
-    this.deactivatedDateStyle =
-        widget.dateTextStyle.copyWith(color: widget.deactivatedColor);
-    this.deactivatedMonthStyle =
-        widget.monthTextStyle.copyWith(color: widget.deactivatedColor);
-    this.deactivatedDayStyle =
-        widget.dayTextStyle.copyWith(color: widget.deactivatedColor);
 
     // Center the initial selected date if centerSelectedDate is enabled
     if (widget.centerSelectedDate && _currentDate != null) {
