@@ -424,8 +424,10 @@ class DatePickerController {
         date.compareTo(_datePickerState!.widget.startDate
                 .add(Duration(days: _datePickerState!.widget.daysCount))) <=
             0) {
-      // date is in the range
-      _datePickerState!._currentDate = date;
+      // date is in the range - update with setState to trigger rebuild
+      _datePickerState!.setState(() {
+        _datePickerState!._currentDate = date;
+      });
 
       if (_datePickerState!.widget.centerSelectedDate) {
         _datePickerState!._animateToCenter(date);
